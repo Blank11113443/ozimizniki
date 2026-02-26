@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>OpenClaw v4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent:#3b82f6; --green:#22c55e; --red:#ef4444; --yellow:#f59e0b; }
+    [data-theme="dark"] {
+      --bg:#0a0a0f; --bg2:#111118; --surface:#16161f;
+      --border:#22222e; --border2:#2a2a38;
+      --text:#e2e2ed; --text2:#9090a8; --text3:#55556a;
+    }
+    [data-theme="light"] {
+      --bg:#f2f2f7; --bg2:#e8e8f0; --surface:#ffffff;
+      --border:#e0e0ea; --border2:#d0d0de;
+      --text:#1a1a2e; --text2:#666680; --text3:#aaaabc;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:400;line-height:1.5;min-height:100vh;transition:background .2s,color .2s}
+    .wrap{padding:14px 14px 28px;max-width:460px;margin:0 auto}
+
+    /* HEADER */
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .logo{font-size:13px;font-weight:600;letter-spacing:-.2px;color:var(--text)}
+    .logo em{color:var(--accent);font-style:normal}
+    .logo small{color:var(--text3);font-weight:300;font-size:11px}
+    .hdr-r{display:flex;align-items:center;gap:5px}
+
+    .theme-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
+    .theme-btn:hover{border-color:var(--border2)}
+
+    .pill{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:6px;font-size:10px;font-weight:500;border:1px solid var(--border);color:var(--text3);transition:all .2s;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+    .pill.on{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.07)}
+    .pill.real{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.07)}
+    .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+    .pill.on .dot{animation:blink 1.6s ease-in-out infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+    /* BALANCE */
+    .bal-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;position:relative;overflow:hidden}
+    .bal-card::after{content:'';position:absolute;top:-10px;right:-10px;width:90px;height:90px;background:radial-gradient(circle,rgba(59,130,246,.07) 0%,transparent 70%);pointer-events:none}
+    .bal-lbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:4px}
+    .bal-val{font-size:26px;font-weight:600;letter-spacing:-.5px;color:var(--text);font-family:'Geist Mono',monospace;margin-bottom:6px}
+    .bal-meta{font-size:10px;color:var(--text3);display:flex;gap:10px}
+    .bal-meta span{color:var(--text2)}
+
+    /* SCAN BAR */
+    .scan-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+    .scan-ico{width:30px;height:30px;border-radius:8px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .3s}
+    .scan-ico.active{animation:scanp 2s ease-in-out infinite}
+    @keyframes scanp{0%,100%{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.15)}50%{background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.4)}}
+    .scan-txt{flex:1;min-width:0}
+    .scan-t{font-size:11px;font-weight:500;color:var(--text)}
+    .scan-s{font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .dots span{display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--accent);margin:0 1px;animation:dw 1.2s ease-in-out infinite}
+    .dots span:nth-child(2){animation-delay:.15s}
+    .dots span:nth-child(3){animation-delay:.3s}
+    @keyframes dw{0%,100%{opacity:.2;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+    .sbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center}
+    .sv{font-size:17px;font-weight:600;font-family:'Geist Mono',monospace;color:var(--text);line-height:1;margin-bottom:3px}
+    .sv.g{color:var(--green)}.sv.r{color:var(--red)}.sv.b{color:var(--accent)}
+    .sl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
+
+    /* TOGGLE */
+    .btn-tg{width:100%;padding:12px;border-radius:10px;border:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:8px;letter-spacing:.02em}
+    .btn-tg.start{background:var(--accent);color:#fff}
+    .btn-tg.start:hover{background:#2563eb}
+    .btn-tg.stop{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+    .btn-tg.stop:hover{background:rgba(239,68,68,.18)}
+
+    /* TABS */
+    .tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px;margin-bottom:10px}
+    .tab{flex:1;padding:7px 4px;border-radius:7px;border:none;background:transparent;color:var(--text3);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
+    .tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* SECTION TITLE */
+    .stit{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px;display:flex;align-items:center;gap:8px}
+    .stit::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* TOTAL BAR */
+    .total-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    .total-lbl{font-size:10px;color:var(--text3)}
+    .total-lbl b{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:1px}
+    .total-val{font-family:'Geist Mono',monospace;font-size:18px;font-weight:600}
+    .total-val.g{color:var(--green)}.total-val.r{color:var(--red)}
+
+    /* POSITIONS */
+    .pos-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:6px}
+    .pos-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+    .pos-sym{font-size:12px;font-weight:600;color:var(--text);flex:1}
+    .pos-sym small{display:block;font-size:9px;font-weight:400;color:var(--text3);margin-top:1px}
+    .pnl-badge{font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px}
+    .pnl-badge.g{color:var(--green);background:rgba(34,197,94,.1)}
+    .pnl-badge.r{color:var(--red);background:rgba(239,68,68,.1)}
+    .btn-x{width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+    .btn-x:hover{border-color:var(--red);color:var(--red)}
+    .pos-r2{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:6px;flex-wrap:wrap;gap:2px}
+    .pos-r2 b{color:var(--text2);font-weight:500}
+    .pbar{height:2px;border-radius:1px;background:var(--border);overflow:hidden}
+    .pbar-f{height:100%;border-radius:1px;transition:width .6s}
+    .pos-usdt{font-size:10px;color:var(--text3);text-align:right;margin-top:4px}
+    .pos-usdt b{font-weight:500}
+    .pos-usdt .g{color:var(--green)}.pos-usdt .r{color:var(--red)}
+
+    /* SIGNALS */
+    .sig-item{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:5px}
+    .sig-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0}
+    .sig-sym{font-size:11px;font-weight:500;color:var(--text);flex:1}
+    .sig-time{font-size:9px;color:var(--text3)}
+    .score-chip{font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;padding:2px 7px;border-radius:5px;background:rgba(59,130,246,.08);color:var(--accent);border:1px solid rgba(59,130,246,.18)}
+
+    /* HISTORY */
+    .hist-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+    .hist-item:last-child{border-bottom:none}
+    .hbadge{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+    .hbadge.g{background:var(--green)}.hbadge.r{background:var(--red)}
+    .hsym{font-size:11px;font-weight:500;color:var(--text);flex:1}
+    .hmeta{font-size:9px;color:var(--text3);margin-top:1px}
+    .hpnl{font-family:'Geist Mono',monospace;font-size:12px;font-weight:600}
+    .hpnl.g{color:var(--green)}.hpnl.r{color:var(--red)}
+
+    /* SETTINGS */
+    .params{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+    .pbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+    .plbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:5px}
+    .pinp{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:'Geist Mono',monospace;font-size:15px;font-weight:500;padding-bottom:2px;outline:none}
+    .pinp:focus{border-color:var(--accent)}
+    .punit{font-size:9px;color:var(--text3);margin-top:3px}
+    .btn-save{width:100%;padding:10px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:10px}
+    .btn-save:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* CHIPS */
+    .chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+    .chip{padding:3px 8px;border-radius:5px;font-size:9px;font-weight:500;border:1px solid var(--border);color:var(--text3)}
+    .chip.on{border-color:rgba(59,130,246,.35);color:var(--accent);background:rgba(59,130,246,.07)}
+
+    /* LOG */
+    .log{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 12px;height:100px;overflow-y:auto;font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3)}
+    .log-l{margin-bottom:2px;line-height:1.5}
+    .log-l.new{color:var(--accent)}
+
+    .empty{text-align:center;padding:24px 0;color:var(--text3);font-size:11px}
+
+    ::-webkit-scrollbar{width:2px}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Open<em>Claw</em> <small>v4</small></div>
+    <div class="hdr-r">
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️</button>
+      <div id="dry-pill" class="pill" onclick="toggleDry()">DRY</div>
+      <div id="status-pill" class="pill">
+        <div class="dot"></div>
+        <span id="status-txt">off</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- BALANCE -->
+  <div class="bal-card">
+    <div class="bal-lbl">Balans</div>
+    <div class="bal-val" id="balance">$0.00</div>
+    <div class="bal-meta">
+      <span><span id="open-cnt">0</span> pozitsiya</span>
+      <span><span id="coin-cnt">0</span> coin</span>
+      <span id="upd">--:--</span>
+    </div>
+  </div>
+
+  <!-- SCAN BAR -->
+  <div class="scan-bar">
+    <div class="scan-ico" id="scan-ico">⏸</div>
+    <div class="scan-txt">
+      <div class="scan-t" id="scan-t">Bot kutish rejimida</div>
+      <div class="scan-s" id="scan-s">Trading o'chirilgan</div>
+    </div>
+    <div class="dots" id="scan-dots" style="display:none">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="sbox"><div class="sv b" id="tr-t">0</div><div class="sl">Trades</div></div>
+    <div class="sbox"><div class="sv g" id="win-t">0</div><div class="sl">Win</div></div>
+    <div class="sbox"><div class="sv" id="pnl-t">0%</div><div class="sl">PnL</div></div>
+  </div>
+
+  <!-- TOGGLE -->
+  <button id="toggle-btn" class="btn-tg start" onclick="toggleTrading()">Tradingni Yoqish</button>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('positions',this)">Pozitsiyalar</button>
+    <button class="tab" onclick="showTab('signals',this)">Signallar</button>
+    <button class="tab" onclick="showTab('history',this)">Tarix</button>
+    <button class="tab" onclick="showTab('settings',this)">Sozlama</button>
+  </div>
+
+  <!-- POSITIONS TAB -->
+  <div id="tab-positions" class="tab-panel active">
+    <div id="pos-total" class="total-bar" style="display:none">
+      <div class="total-lbl">
+        <b id="pos-total-sub">Umumiy PnL</b>
+        barcha pozitsiyalar
+      </div>
+      <div class="total-val" id="pos-total-val">0%</div>
+    </div>
+    <div class="stit">Ochiq pozitsiyalar</div>
+    <div id="pos-list"><div class="empty">Ochiq pozitsiya yo'q</div></div>
+  </div>
+
+  <!-- SIGNALS TAB -->
+  <div id="tab-signals" class="tab-panel">
+    <div class="stit">Aniqlangan signallar</div>
+    <div id="sig-list"><div class="empty">Signal kutilmoqda...</div></div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-panel">
+    <div id="hist-total" class="total-bar" style="display:none">
+      <div class="total-lbl">
+        <b id="hist-cnt">0 trade</b>
+        umumiy natija
+      </div>
+      <div class="total-val" id="hist-pnl">0%</div>
+    </div>
+    <div class="stit">Trades tarixi</div>
+    <div id="hist-list"><div class="empty">Hali trade yo'q</div></div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="tab-settings" class="tab-panel">
+    <div class="stit">Savdo parametrlari</div>
+    <div class="params">
+      <div class="pbox">
+        <div class="plbl">Take Profit</div>
+        <input class="pinp" id="tp-in" type="number" step="0.1" min="0.1" value="2.0">
+        <div class="punit">% foiz</div>
+      </div>
+      <div class="pbox">
+        <div class="plbl">Stop Loss</div>
+        <input class="pinp" id="sl-in" type="number" step="0.1" min="0.1" value="1.0">
+        <div class="punit">% foiz</div>
+      </div>
+      <div class="pbox">
+        <div class="plbl">Savdo summasi</div>
+        <input class="pinp" id="amt-in" type="number" step="1" min="5" value="10">
+        <div class="punit">USDT</div>
+      </div>
+      <div class="pbox">
+        <div class="plbl">Max pozitsiyalar</div>
+        <input class="pinp" id="maxpos-in" type="number" step="1" min="1" max="30" value="5">
+        <div class="punit">ta bir vaqtda</div>
+      </div>
+    </div>
+    <button class="btn-save" onclick="saveParams()">Saqlash</button>
+
+    <div class="stit">Kuzatiladigan coinlar</div>
+    <div class="chips" id="sym-chips"></div>
+
+    <div class="stit" style="margin-top:6px">Log</div>
+    <div class="log" id="log-box">Ulanmoqda...</div>
+  </div>
+
+</div>
+<script>
+const API = (location.origin.includes('ngrok')||location.origin.includes('localhost'))
+  ? location.origin+'/api'
+  : 'https://orville-diclinous-unpolemically.ngrok-free.dev/api';
+const H = {'ngrok-skip-browser-warning':'true'};
+const get = p => fetch(API+p,{headers:H}).then(r=>r.json()).catch(()=>null);
+const post = (p,b) => fetch(API+p,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json()).catch(()=>null);
+
+let theme = localStorage.getItem('oc-theme')||'dark';
+let editMode = false;
+
+document.documentElement.setAttribute('data-theme', theme);
+document.getElementById('theme-btn').textContent = theme==='dark'?'☀️':'🌙';
+
+function toggleTheme(){
+  theme = theme==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  document.getElementById('theme-btn').textContent = theme==='dark'?'☀️':'🌙';
+  localStorage.setItem('oc-theme',theme);
+}
+
+function showTab(name,el){
+  document.querySelectorAll('.tab-panel').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='history') loadHistory();
+}
+
+async function toggleTrading(){ await get('/toggle_trading'); update(); }
+async function toggleDry(){ await get('/toggle_dry'); update(); }
+
+async function saveParams(){
+  await Promise.all([
+    post('/set_tp',     {value:parseFloat(document.getElementById('tp-in').value)}),
+    post('/set_sl',     {value:parseFloat(document.getElementById('sl-in').value)}),
+    post('/set_amount', {value:parseFloat(document.getElementById('amt-in').value)}),
+    post('/set_maxpos', {value:parseInt(document.getElementById('maxpos-in').value)}),
+  ]);
+  const btn=document.querySelector('.btn-save');
+  btn.textContent='✓ Saqlandi';
+  setTimeout(()=>btn.textContent='Saqlash',2000);
+  editMode=false;
+}
+
+async function closePos(sym){
+  if(!confirm(sym+' ni yopasizmi?'))return;
+  await post('/close_position',{symbol:sym});
+  update();
+}
+
+async function loadHistory(){
+  const data = await get('/history');
+  const el = document.getElementById('hist-list');
+  const tb = document.getElementById('hist-total');
+  if(!data||!data.length){
+    el.innerHTML='<div class="empty">Hali trade yo\'q</div>';
+    tb.style.display='none'; return;
+  }
+  const totalPnl = data.reduce((s,t)=>s+(t.pnl_pct||0),0);
+  const wins = data.filter(t=>t.pnl_pct>0).length;
+  const cls = totalPnl>=0?'g':'r';
+  tb.style.display='flex';
+  document.getElementById('hist-cnt').textContent = data.length+' trade · '+wins+' win';
+  const pv=document.getElementById('hist-pnl');
+  pv.textContent=(totalPnl>=0?'+':'')+totalPnl.toFixed(2)+'%';
+  pv.className='total-val '+cls;
+  el.innerHTML = data.map(t=>{
+    const c=t.pnl_pct>=0?'g':'r', s=t.pnl_pct>=0?'+':'';
+    return `<div class="hist-item">
+      <div class="hbadge ${c}"></div>
+      <div style="flex:1"><div class="hsym">${t.symbol}</div>
+      <div class="hmeta">${t.date} · ${t.hold_min}m · ${t.reason}</div></div>
+      <div class="hpnl ${c}">${s}${t.pnl_pct.toFixed(2)}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderPositions(pos){
+  const el=document.getElementById('pos-list');
+  const tb=document.getElementById('pos-total');
+  const keys=Object.keys(pos);
+  if(!keys.length){
+    el.innerHTML='<div class="empty">Ochiq pozitsiya yo\'q</div>';
+    tb.style.display='none'; return;
+  }
+  let totPct=0, totUsdt=0;
+  keys.forEach(sym=>{
+    const p=pos[sym];
+    totPct+=p.pnl_pct||0;
+    totUsdt+=(p.current-p.entry)*p.amount;
+  });
+  const avg=totPct/keys.length;
+  const tc=avg>=0?'g':'r', ts=avg>=0?'+':'';
+  tb.style.display='flex';
+  document.getElementById('pos-total-sub').textContent=
+    (totUsdt>=0?'+':'')+'$'+totUsdt.toFixed(2)+' ('+keys.length+' ta)';
+  const tv=document.getElementById('pos-total-val');
+  tv.textContent=ts+avg.toFixed(2)+'%';
+  tv.className='total-val '+tc;
+
+  el.innerHTML=keys.map(sym=>{
+    const p=pos[sym];
+    const c=p.pnl_pct>=0?'g':'r', s=p.pnl_pct>=0?'+':'';
+    const range=p.tp-p.sl;
+    const prog=range>0?Math.min(100,Math.max(0,(p.current-p.sl)/range*100)):50;
+    const barC=p.pnl_pct>=0?'var(--green)':'var(--red)';
+    const pU=(p.current-p.entry)*p.amount;
+    return `<div class="pos-item">
+      <div class="pos-top">
+        <div class="pos-sym">${sym.replace('/USDT','')}
+          <small>${p.sector} · score ${p.score} · ${p.hold_min}m</small>
+        </div>
+        <div class="pnl-badge ${c}">${s}${p.pnl_pct.toFixed(2)}%</div>
+        <button class="btn-x" onclick="closePos('${sym}')">✕</button>
+      </div>
+      <div class="pos-r2">
+        <span>Entry <b>${p.entry.toFixed(5)}</b></span>
+        <span>Now <b>${p.current.toFixed(5)}</b></span>
+        <span>TP <b style="color:var(--green)">${p.tp.toFixed(5)}</b></span>
+        <span>SL <b style="color:var(--red)">${p.sl.toFixed(5)}</b></span>
+      </div>
+      <div class="pbar"><div class="pbar-f" style="width:${prog}%;background:${barC}"></div></div>
+      <div class="pos-usdt"><b class="${c}">${(pU>=0?'+':'') + '$'+pU.toFixed(2)}</b></div>
+    </div>`;
+  }).join('');
+}
+
+function renderSignals(sigs){
+  const el=document.getElementById('sig-list');
+  if(!sigs||!sigs.length){el.innerHTML='<div class="empty">Signal kutilmoqda...</div>';return;}
+  el.innerHTML=sigs.map(s=>`<div class="sig-item">
+    <div class="sig-dot"></div>
+    <div class="sig-sym">${s.symbol}</div>
+    <div class="sig-time">${s.time}</div>
+    <div class="score-chip">${s.score}/6</div>
+  </div>`).join('');
+}
+
+function renderSymbols(syms){
+  const el=document.getElementById('sym-chips');
+  el.innerHTML=(syms||[]).map(s=>`<div class="chip on">${s.replace('/USDT','')}</div>`).join('');
+}
+
+function renderLog(lines){
+  const el=document.getElementById('log-box');
+  if(!lines||!lines.length)return;
+  el.innerHTML=lines.map((l,i)=>`<div class="log-l${i===0?' new':''}">${l}</div>`).join('');
+}
+
+function updateScan(on, cnt, lastSig){
+  const ico=document.getElementById('scan-ico');
+  const t=document.getElementById('scan-t');
+  const s=document.getElementById('scan-s');
+  const dots=document.getElementById('scan-dots');
+  if(!on){
+    ico.className='scan-ico'; ico.textContent='⏸';
+    t.textContent='Bot kutish rejimida';
+    s.textContent='Trading o\'chirilgan';
+    dots.style.display='none';
+  } else {
+    ico.className='scan-ico active'; ico.textContent='📡';
+    t.textContent=cnt+' coin skanlanmoqda';
+    s.textContent=lastSig?'Oxirgi: '+lastSig.symbol+' · '+lastSig.time:'Signal izlanmoqda...';
+    dots.style.display='inline';
+  }
+}
+
+async function update(){
+  try{
+    const d=await get('/status');
+    if(!d)return;
+    const on=d.is_running;
+
+    // status pill
+    const sp=document.getElementById('status-pill');
+    sp.className='pill'+(on?' on':'');
+    document.getElementById('status-txt').textContent=on?'faol':'off';
+
+    // toggle btn
+    const btn=document.getElementById('toggle-btn');
+    btn.className='btn-tg '+(on?'stop':'start');
+    btn.textContent=on?"Tradingni To'xtatish":'Tradingni Yoqish';
+
+    // dry pill
+    const dp=document.getElementById('dry-pill');
+    dp.className='pill'+(d.dry_run?'':' real');
+    dp.textContent=d.dry_run?'DRY':'REAL';
+
+    // balance
+    document.getElementById('balance').textContent='$'+(d.balance||0).toFixed(2);
+    document.getElementById('open-cnt').textContent=Object.keys(d.positions||{}).length;
+    document.getElementById('coin-cnt').textContent=d.symbols_count||0;
+    document.getElementById('upd').textContent=d.last_update||'--:--';
+
+    // stats
+    document.getElementById('tr-t').textContent=d.trades_today||0;
+    document.getElementById('win-t').textContent=d.wins_today||0;
+    const pnl=d.pnl_today||0;
+    const pe=document.getElementById('pnl-t');
+    pe.textContent=(pnl>=0?'+':'')+pnl.toFixed(2)+'%';
+    pe.className='sv '+(pnl>0?'g':pnl<0?'r':'');
+
+    const sigs=d.last_signals||[];
+    updateScan(on,d.symbols_count||0,sigs[0]||null);
+
+    renderPositions(d.positions||{});
+    renderSignals(sigs);
+    renderSymbols(d.symbols||[]);
+    renderLog(d.log_lines||[]);
+
+    if(!editMode){
+      document.getElementById('tp-in').value=d.tp_pct||2;
+      document.getElementById('sl-in').value=d.sl_pct||1;
+      document.getElementById('amt-in').value=d.quote_usdt||10;
+      document.getElementById('maxpos-in').value=d.max_positions||5;
+    }
+  }catch(e){console.warn(e)}
+}
+
+['tp-in','sl-in','amt-in','maxpos-in'].forEach(id=>{
+  document.getElementById(id).addEventListener('focus',()=>editMode=true);
+  document.getElementById(id).addEventListener('blur',()=>setTimeout(()=>editMode=false,5000));
+});
+
+update();
+setInterval(update,3000);
+</script>
+</body>
+</html>

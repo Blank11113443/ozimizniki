@@ -130,6 +130,26 @@
     .ring-fg{fill:none;stroke:var(--green);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
     .ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--green)}
 
+    /* RESET BUTTON */
+    .reset-wrap{margin:0 12px 9px}
+    .reset-btn{
+      width:100%;padding:10px;border-radius:13px;
+      border:1px solid rgba(251,191,36,.2);
+      background:rgba(251,191,36,.06);
+      color:var(--amber);font-family:'Inter',sans-serif;
+      font-size:12px;font-weight:700;cursor:pointer;
+      transition:all .2s;letter-spacing:.04em;
+      display:flex;align-items:center;justify-content:center;gap:7px;
+    }
+    .reset-btn span{font-size:16px;line-height:1}
+    .reset-btn:hover{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.35)}
+    .reset-btn:active{transform:scale(.98)}
+    .reset-btn.confirm{
+      background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.35);color:var(--red);
+      animation:confirmPulse .4s ease;
+    }
+    @keyframes confirmPulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+
     /* ACTION BUTTON */
     .act-wrap{margin:0 12px 9px;position:relative;overflow:hidden;border-radius:16px}
     .act-btn{width:100%;height:52px;border-radius:16px;border:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;letter-spacing:.03em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
@@ -314,12 +334,6 @@
       <span class="tick-price mono" id="eth-price">---</span>
       <span class="tick-chg g mono" id="eth-chg">---</span>
     </div>
-    <div class="tick-sep"></div>
-    <div class="tick-item">
-      <span class="tick-name">SOL</span>
-      <span class="tick-price mono" id="sol-price">---</span>
-      <span class="tick-chg g mono" id="sol-chg">---</span>
-    </div>
   </div>
 
   <!-- SCAN ROW -->
@@ -357,6 +371,13 @@
       <div class="met-v white mono" id="mt-pnl">0%</div>
       <div class="met-l">PnL</div>
     </div>
+  </div>
+
+  <!-- RESET STATS -->
+  <div class="reset-wrap">
+    <button class="reset-btn" id="reset-btn" onclick="resetStats()">
+      <span>↺</span> Statistikani Noldan Boshlash
+    </button>
   </div>
 
   <!-- ACTION BUTTON -->
@@ -458,7 +479,7 @@ const get=p=>fetch(API+p,{headers:H}).then(r=>r.json()).catch(()=>null);
 const post=(p,b)=>fetch(API+p,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json()).catch(()=>null);
 
 let editing=false,prevOn=false,prevSigCount=0;
-let tickerPrices={btc:null,eth:null,sol:null};
+let tickerPrices={btc:null,eth:null};
 
 // THEME
 let theme=localStorage.getItem('oc-theme')||'dark';
@@ -492,11 +513,10 @@ function tickClock(){
 }
 tickClock();setInterval(tickClock,1000);
 
-// LIVE TICKER
+// LIVE TICKER — faqat BTC va ETH
 const COINS=[
   {id:'btc',sym:'bitcoin',priceEl:'btc-price',chgEl:'btc-chg'},
   {id:'eth',sym:'ethereum',priceEl:'eth-price',chgEl:'eth-chg'},
-  {id:'sol',sym:'solana',priceEl:'sol-price',chgEl:'sol-chg'},
 ];
 async function fetchTicker(){
   try{
@@ -548,6 +568,50 @@ async function toggleTrading(){
 async function toggleDry(){
   const res=await get('/toggle_dry');
   if(res)toast(res.dry_run?'🔵 DRY rejim yoqildi':'🟢 REAL rejim yoqildi','info');
+  update();
+}
+
+// RESET STATS — 2 marta bosish himoyasi
+let resetClickCount=0,resetTimer=null;
+async function resetStats(){
+  const btn=document.getElementById('reset-btn');
+  resetClickCount++;
+
+  if(resetClickCount===1){
+    // Birinchi bosish — tasdiqlash so'rash
+    btn.classList.add('confirm');
+    btn.innerHTML='<span>⚠️</span> Ishonchingiz komilmi? Qayta bosing!';
+    resetTimer=setTimeout(()=>{
+      resetClickCount=0;
+      btn.classList.remove('confirm');
+      btn.innerHTML='<span>↺</span> Statistikani Noldan Boshlash';
+    },3000);
+    return;
+  }
+
+  // Ikkinchi bosish — bajarish
+  clearTimeout(resetTimer);
+  resetClickCount=0;
+  btn.classList.remove('confirm');
+  btn.textContent='⏳ Tozalanmoqda...';
+  btn.disabled=true;
+
+  const res=await get('/reset_stats');
+  if(res&&res.status==='ok'){
+    toast('🔄 Statistika 0 dan boshlandi!','success',3000);
+    btn.innerHTML='<span>✓</span> Tozalandi!';
+    btn.style.color='var(--green)';
+    btn.style.borderColor='rgba(34,197,94,.3)';
+    setTimeout(()=>{
+      btn.innerHTML='<span>↺</span> Statistikani Noldan Boshlash';
+      btn.style.color='';btn.style.borderColor='';
+      btn.disabled=false;
+    },2500);
+  } else {
+    toast('❌ Xato yuz berdi','error');
+    btn.innerHTML='<span>↺</span> Statistikani Noldan Boshlash';
+    btn.disabled=false;
+  }
   update();
 }
 async function saveParams(){

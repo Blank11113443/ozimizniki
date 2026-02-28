@@ -130,35 +130,34 @@
     .ring-fg{fill:none;stroke:var(--green);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
     .ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--green)}
 
-    /* RESET BUTTON */
-    .reset-wrap{margin:0 12px 9px}
-    .reset-btn{
-      width:100%;padding:10px;border-radius:13px;
-      border:1px solid rgba(251,191,36,.2);
+    /* ACTIONS INLINE (SCAN ROW) */
+    .scan-actions{display:flex;flex-direction:column;gap:6px;align-items:stretch;flex-shrink:0}
+    .scan-btn{height:34px;padding:0 12px;border-radius:12px;border:1px solid;cursor:pointer;font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;position:relative;overflow:hidden}
+    .scan-btn:active{transform:scale(.98)}
+    .scan-btn span{font-size:14px;line-height:1}
+    .scan-btn.reset{
+      border-color:rgba(251,191,36,.25);
       background:rgba(251,191,36,.06);
-      color:var(--amber);font-family:'Inter',sans-serif;
-      font-size:12px;font-weight:700;cursor:pointer;
-      transition:all .2s;letter-spacing:.04em;
-      display:flex;align-items:center;justify-content:center;gap:7px;
+      color:var(--amber);
     }
-    .reset-btn span{font-size:16px;line-height:1}
-    .reset-btn:hover{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.35)}
-    .reset-btn:active{transform:scale(.98)}
-    .reset-btn.confirm{
+    .scan-btn.reset:hover{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.35)}
+    .scan-btn.reset.confirm{
       background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.35);color:var(--red);
       animation:confirmPulse .4s ease;
     }
+    .scan-btn.go{
+      background:linear-gradient(135deg,rgba(34,197,94,.16) 0%,rgba(34,197,94,.08) 100%);
+      color:var(--green);border-color:rgba(34,197,94,.32);
+      box-shadow:0 0 18px rgba(34,197,94,.12),inset 0 1px 0 rgba(34,197,94,.2)
+    }
+    .scan-btn.go:hover{box-shadow:0 0 24px rgba(34,197,94,.22),inset 0 1px 0 rgba(34,197,94,.2)}
+    .scan-btn.halt{
+      background:linear-gradient(135deg,rgba(244,63,94,.12) 0%,rgba(244,63,94,.06) 100%);
+      color:var(--red);border-color:rgba(244,63,94,.3);
+      box-shadow:0 0 18px rgba(244,63,94,.08),inset 0 1px 0 rgba(244,63,94,.15)
+    }
+    .scan-btn.go::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);animation:shine 2.8s ease-in-out infinite}
     @keyframes confirmPulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
-
-    /* ACTION BUTTON */
-    .act-wrap{margin:0 12px 9px;position:relative;overflow:hidden;border-radius:16px}
-    .act-btn{width:100%;height:52px;border-radius:16px;border:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;letter-spacing:.03em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
-    .act-btn.go{background:linear-gradient(135deg,rgba(34,197,94,.16) 0%,rgba(34,197,94,.08) 100%);color:var(--green);border:1px solid rgba(34,197,94,.32);box-shadow:0 0 24px rgba(34,197,94,.12),inset 0 1px 0 rgba(34,197,94,.2)}
-    .act-btn.go:hover{box-shadow:0 0 32px rgba(34,197,94,.22),inset 0 1px 0 rgba(34,197,94,.2);transform:translateY(-1px)}
-    .act-btn.go:active{transform:scale(.98)}
-    .act-btn.halt{background:linear-gradient(135deg,rgba(244,63,94,.12) 0%,rgba(244,63,94,.06) 100%);color:var(--red);border:1px solid rgba(244,63,94,.3);box-shadow:0 0 20px rgba(244,63,94,.08),inset 0 1px 0 rgba(244,63,94,.15)}
-    .act-btn.halt:active{transform:scale(.98)}
-    .act-btn.go::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);animation:shine 2.8s ease-in-out infinite}
     @keyframes shine{0%{left:-100%}40%,100%{left:160%}}
 
     /* TABS */
@@ -344,8 +343,13 @@
       <div class="scan-sub" id="scan-s">Trading o'chirilgan</div>
     </div>
     <div id="scan-right">
-      <div class="scan-dots">
-        <div class="scan-dot-a"></div><div class="scan-dot-a"></div><div class="scan-dot-a"></div>
+      <div class="scan-actions">
+        <button id="action-btn" class="scan-btn go" onclick="toggleTrading()">
+          <span id="act-ico">▶</span> <span id="act-txt">Tradingni Boshlash</span>
+        </button>
+        <button class="scan-btn reset" id="reset-btn" onclick="resetStats()">
+          <span>↺</span> <span>Stat Noldan</span>
+        </button>
       </div>
     </div>
   </div>
@@ -371,20 +375,6 @@
       <div class="met-v white mono" id="mt-pnl">0%</div>
       <div class="met-l">PnL</div>
     </div>
-  </div>
-
-  <!-- RESET STATS -->
-  <div class="reset-wrap">
-    <button class="reset-btn" id="reset-btn" onclick="resetStats()">
-      <span>↺</span> Statistikani Noldan Boshlash
-    </button>
-  </div>
-
-  <!-- ACTION BUTTON -->
-  <div class="act-wrap">
-    <button id="action-btn" class="act-btn go" onclick="toggleTrading()">
-      <span id="act-ico">▶</span> <span id="act-txt">Tradingni Boshlash</span>
-    </button>
   </div>
 
   <!-- TABS -->
@@ -580,11 +570,11 @@ async function resetStats(){
   if(resetClickCount===1){
     // Birinchi bosish — tasdiqlash so'rash
     btn.classList.add('confirm');
-    btn.innerHTML='<span>⚠️</span> Ishonchingiz komilmi? Qayta bosing!';
+    btn.innerHTML='<span>⚠️</span> Qayta bosing';
     resetTimer=setTimeout(()=>{
       resetClickCount=0;
       btn.classList.remove('confirm');
-      btn.innerHTML='<span>↺</span> Statistikani Noldan Boshlash';
+      btn.innerHTML='<span>↺</span> Stat Noldan';
     },3000);
     return;
   }
@@ -603,13 +593,13 @@ async function resetStats(){
     btn.style.color='var(--green)';
     btn.style.borderColor='rgba(34,197,94,.3)';
     setTimeout(()=>{
-      btn.innerHTML='<span>↺</span> Statistikani Noldan Boshlash';
+      btn.innerHTML='<span>↺</span> Stat Noldan';
       btn.style.color='';btn.style.borderColor='';
       btn.disabled=false;
     },2500);
   } else {
     toast('❌ Xato yuz berdi','error');
-    btn.innerHTML='<span>↺</span> Statistikani Noldan Boshlash';
+    btn.innerHTML='<span>↺</span> Stat Noldan';
     btn.disabled=false;
   }
   update();
@@ -721,7 +711,7 @@ function updateStatusUI(on,dry){
   document.getElementById('spill-dry-txt').textContent=dry?'DRY':'REAL';
   document.getElementById('spill-status').className='spill spill-status'+(on?' on':'');
   document.getElementById('spill-status-txt').textContent=on?"FAOL":"TO'XTATILGAN";
-  document.getElementById('action-btn').className='act-btn '+(on?'halt':'go');
+  document.getElementById('action-btn').className='scan-btn '+(on?'halt':'go');
   document.getElementById('act-ico').textContent=on?'■':'▶';
   document.getElementById('act-txt').textContent=on?"Tradingni To'xtatish":"Tradingni Boshlash";
   document.getElementById('sw-trading').className='sw'+(on?' on':'');

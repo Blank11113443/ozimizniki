@@ -719,13 +719,10 @@ function updateStatusUI(on,dry){
   document.getElementById('sw-dry').className='sw dry-sw'+(dry?' on':'');
   const dl=document.getElementById('tog-d-lbl');dl.textContent=dry?'DRY':'REAL';dl.className='tog-val '+(dry?'dry-on':'dry-off');
   const ico=document.getElementById('scan-ico');
-  const sr=document.getElementById('scan-right');
   if(on){
     ico.className='scan-ico live';
-    sr.innerHTML='<div class="scan-wave"><span></span><span></span><span></span><span></span><span></span></div>';
   }else{
     ico.className='scan-ico';
-    sr.innerHTML='<div class="scan-dots"><div class="scan-dot-a"></div><div class="scan-dot-a"></div><div class="scan-dot-a"></div></div>';
     document.getElementById('scan-t').textContent='Kutish rejimi';
     document.getElementById('scan-s').textContent="Trading o'chirilgan";
   }

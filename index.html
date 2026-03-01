@@ -242,8 +242,9 @@
     .sig-led{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--blue);box-shadow:0 0 8px rgba(96,165,250,.6)}
     .sig-tools{display:flex;justify-content:flex-end;margin:6px 0 8px}
     .sig-filter{font-size:12px;color:var(--text2)}
-    .sig-table{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-    .sig-row{display:grid;grid-template-columns:48px 64px 54px 56px 64px 72px 1fr;gap:6px;align-items:center;padding:9px 10px;border-top:1px solid var(--border)}
+    .sig-table{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+    .sig-table::-webkit-scrollbar{display:none}
+    .sig-row{display:grid;grid-template-columns:52px 64px 52px 56px 64px 72px 70px 110px;gap:6px;align-items:center;padding:9px 10px;border-top:1px solid var(--border);min-width:620px}
     .sig-row.head{background:var(--card2);font-size:10px;color:var(--text2);border-top:none}
     .sig-row .mono{font-size:10px}
     .sig-act{display:flex;gap:5px;justify-content:flex-end}
@@ -373,18 +374,6 @@
       <span class="tick-name">ETH</span>
       <span class="tick-price mono" id="eth-price">---</span>
       <span class="tick-chg g mono" id="eth-chg">---</span>
-    </div>
-    <div class="tick-sep"></div>
-    <div class="tick-item">
-      <span class="tick-name">XAU</span>
-      <span class="tick-price mono" id="xau-price">---</span>
-      <span class="tick-chg g mono" id="xau-chg">---</span>
-    </div>
-    <div class="tick-sep"></div>
-    <div class="tick-item">
-      <span class="tick-name">SPX</span>
-      <span class="tick-price mono" id="spx-price">---</span>
-      <span class="tick-chg g mono" id="spx-chg">---</span>
     </div>
   </div>
 
@@ -640,7 +629,7 @@ function tickClock(){
 }
 tickClock();setInterval(tickClock,1000);
 
-// LIVE TICKER — BTC/ETH + XAU/SPX
+// LIVE TICKER — BTC/ETH
 const COINS=[
   {id:'btc',sym:'bitcoin',priceEl:'btc-price',chgEl:'btc-chg'},
   {id:'eth',sym:'ethereum',priceEl:'eth-price',chgEl:'eth-chg'},
@@ -667,34 +656,7 @@ async function fetchTicker(){
   }catch(e){}
 }
 
-async function fetchStooq(sym, priceEl, chgEl){
-  try{
-    const url='https://stooq.pl/q/l/?s='+sym+'&f=sd2t2ohlcv&h&e=csv';
-    const r=await fetch(url);
-    if(!r.ok)return;
-    const txt=await r.text();
-    const lines=txt.trim().split('\n');
-    if(lines.length<2)return;
-    const parts=lines[1].split(',');
-    const price=parseFloat(parts[6]);
-    const open=parseFloat(parts[3]);
-    if(!isFinite(price)||!isFinite(open))return;
-    const chg=(price/open-1)*100;
-    const pEl=document.getElementById(priceEl);
-    const cEl=document.getElementById(chgEl);
-    pEl.textContent='$'+price.toFixed(2);
-    cEl.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';
-    cEl.className='tick-chg mono '+(chg>=0?'g':'r');
-  }catch(e){}
-}
-
-function fetchMacro(){
-  fetchStooq('xauusd', 'xau-price', 'xau-chg');
-  fetchStooq('spx', 'spx-price', 'spx-chg');
-}
-
 fetchTicker();setInterval(fetchTicker,15000);
-fetchMacro();setInterval(fetchMacro,30000);
 
 // WIN RING
 function updateRing(wins,trades){
@@ -897,7 +859,10 @@ function drawCurve(curve){
   const svg=document.getElementById('hist-chart');
   if(!svg)return;
   if(!curve||!curve.length){svg.innerHTML='';return;}
-  const w=300,h=120,pad=8;
+  const w=svg.clientWidth||300;
+  const h=svg.clientHeight||104;
+  const pad=8;
+  svg.setAttribute('viewBox','0 0 '+w+' '+h);
   const vals=curve.map(c=>c.pnl);
   const min=Math.min(...vals),max=Math.max(...vals);
   const span=(max-min)||1;
@@ -926,7 +891,7 @@ function renderPositions(pos){
   const tb=document.getElementById('pos-total');
   const cab=document.getElementById('close-all-btn');
   lastPositions = pos || {};
-  const keys=Object.keys(pos);
+  const keys=Object.keys(pos).filter(k=>ALLOWED_SET.has(k.replace('/USDT','')));
   document.getElementById('pill-pos').textContent=keys.length+' pozitsiya';
   if(!keys.length){el.innerHTML='<div class="empty"><div class="empty-ico">📭</div>Ochiq pozitsiya yo\'q</div>';tb.style.display='none';cab.style.display='none';return;}
   let totPct=0,totUsd=0;
@@ -955,12 +920,13 @@ function renderSignals(sigs){
 
   const strongOnly=document.getElementById('sig-strong')?.checked;
   const normScore = s => Math.round((s.score||0) * 9 / 5);
-  const list = strongOnly ? sigs.filter(s=>normScore(s)>7) : sigs;
+  const listRaw = strongOnly ? sigs.filter(s=>normScore(s)>7) : sigs;
+  const list = listRaw.filter(s=>ALLOWED_SET.has((s.symbol||'').replace('/USDT','')));
   if(!list.length){el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div>Kuchli signal yo\'q</div>';return;}
 
   const head='<div class="sig-table">'+
     '<div class="sig-row head">'+
-      '<div>Vaqt</div><div>Symbol</div><div>Side</div><div>Score</div><div>Entry</div><div>Status</div><div>Action</div>'+
+      '<div>Vaqt</div><div>Symbol</div><div>Side</div><div>Score</div><div>Entry</div><div>Status</div><div>PnL</div><div>Action</div>'+
     '</div>';
 
   const rows=list.map(s=>{
@@ -974,7 +940,8 @@ function renderSignals(sigs){
       '<div class="mono">BUY</div>'+
       '<div class="mono">'+normScore(s)+'/9</div>'+
       '<div class="mono">'+entry+'</div>'+
-      '<div class="mono">'+status+' '+pnl+'</div>'+
+      '<div class="mono">'+status+'</div>'+
+      '<div class="mono">'+pnl+'</div>'+
       '<div class="sig-act">'+
         '<button class="sig-act-btn" onclick="openManualFromSignal(\''+s.symbol+'\')">Open</button>'+
         '<button class="sig-act-btn warn" onclick="ignoreSignal(\''+s.symbol+'\')">Ignore</button>'+
@@ -986,12 +953,17 @@ function renderSignals(sigs){
 }
 
 // SYMBOLS
+const ALLOWED=[
+  'SOL','ADA','LINK','TRX','DOGE','XRP','BNB','STEEM','FUN','PIPPIN','PORTAL','KRYON','LTC','SUI','PEPE','AFRD'
+];
+const ALLOWED_SET=new Set(ALLOWED);
 function renderSymbols(syms){
-  document.getElementById('sym-chips').innerHTML=(syms||[]).map(s=>'<div class="coin-chip">'+s.replace('/USDT','')+'</div>').join('');
-  document.getElementById('pill-coins').textContent=(syms||[]).length+' coin';
+  const filtered=(syms||[]).filter(s=>ALLOWED_SET.has(s.replace('/USDT','')));
+  document.getElementById('sym-chips').innerHTML=filtered.map(s=>'<div class="coin-chip">'+s.replace('/USDT','')+'</div>').join('');
+  document.getElementById('pill-coins').textContent=filtered.length+' coin';
   const sel=document.getElementById('man-symbol');
   if(sel){
-    sel.innerHTML=(syms||[]).map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+    sel.innerHTML=filtered.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
   }
 }
 
